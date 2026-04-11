@@ -3,11 +3,15 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
-  const client = knex.client.constructor.name;
+  const isPostgres = knex.client.driverName === 'pg';
   
-  if (client === 'PostgreSQL_Client') {
-    await knex.schema.raw('DROP INDEX IF EXISTS confetti_activations_user_id_visitor_id_unique');
-    await knex.schema.raw('ALTER TABLE confetti_activations DROP COLUMN IF EXISTS userId');
+  if (isPostgres) {
+    try {
+      await knex.schema.raw('DROP INDEX IF EXISTS confetti_activations_user_id_visitor_id_unique');
+    } catch (e) {}
+    try {
+      await knex.schema.raw('ALTER TABLE confetti_activations DROP COLUMN IF EXISTS userId');
+    } catch (e) {}
     await knex.schema.raw('ALTER TABLE confetti_activations ADD COLUMN celebrationId INTEGER NOT NULL REFERENCES celebrations(id) ON DELETE CASCADE');
     await knex.schema.raw('CREATE UNIQUE INDEX confetti_activations_celebration_visitor_unique ON confetti_activations(celebrationId, visitorId)');
   } else {
@@ -36,9 +40,9 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
-  const client = knex.client.constructor.name;
+  const isPostgres = knex.client.driverName === 'pg';
   
-  if (client === 'PostgreSQL_Client') {
+  if (isPostgres) {
     await knex.schema.raw('DROP INDEX IF EXISTS confetti_activations_celebration_visitor_unique');
     await knex.schema.raw('ALTER TABLE confetti_activations DROP COLUMN celebrationId');
     await knex.schema.raw('ALTER TABLE confetti_activations ADD COLUMN userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE');
