@@ -14,16 +14,18 @@ module.exports = {
 
   staging: {
     client: 'pg',
+    // connection: {
+    //   connectionString: process.env.PG_CONNECTION_STRING,
+    //   ssl: { rejectUnauthorized: false },
+    // },
     connection: {
-      connectionString: process.env.PG_CONNECTION_STRING,
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.USER,
+      password: process.env.PASSWORD,
+      database: process.env.DATABASE,
       ssl: { rejectUnauthorized: false },
     },
-    // connection: {
-    //   host: process.env.DB_HOST,
-    //   database: process.env.DATABASE,
-    //   user: process.env.USER,
-    //   password: process.env.PASSWORD
-    // },
     pool: {
       min: 2,
       max: 10
@@ -35,16 +37,18 @@ module.exports = {
 
   production: {
     client: 'pg',
+    // connection: {
+    //   connectionString: process.env.PG_CONNECTION_STRING,
+    //   ssl: { rejectUnauthorized: false },
+    // },
     connection: {
-      connectionString: process.env.PG_CONNECTION_STRING,
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.USER,
+      password: process.env.PASSWORD,
+      database: process.env.DATABASE,
       ssl: { rejectUnauthorized: false },
     },
-    // connection: {
-    //   host: process.env.DB_HOST,
-    //   database: process.env.DATABASE,
-    //   user: process.env.USER,
-    //   password: process.env.PASSWORD
-    // },
     pool: {
       min: 2,
       max: 10
