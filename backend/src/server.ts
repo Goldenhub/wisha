@@ -31,6 +31,8 @@ cloudinary.config({
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+app.set("trust proxy", 1);
+
 const corsOptions: cors.CorsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true,
@@ -38,6 +40,7 @@ const corsOptions: cors.CorsOptions = {
 
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 console.log("Frontend URL:", frontendUrl);
+console.log("Environment:", env);
 
 app.use(cors(corsOptions));
 app.use(express.json());
