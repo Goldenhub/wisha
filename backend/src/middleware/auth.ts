@@ -4,21 +4,12 @@ export interface AuthRequest extends Request {
   userId?: number;
 }
 
-export interface SessionData {
-  userId?: number;
-}
-
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (!req.session || !req.session.userId) {
+  const session = req.session as unknown as Record<string, unknown>;
+  if (!session || !session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  req.userId = req.session.userId;
+  req.userId = session.userId as number;
   next();
 };
-
-declare module 'express-session' {
-  interface SessionData {
-    userId?: number;
-  }
-}
