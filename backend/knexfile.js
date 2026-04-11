@@ -14,7 +14,10 @@ module.exports = {
 
   staging: {
     client: 'pg',
-    connection: process.env.PG_CONNECTION_STRING,
+    connection: {
+      connectionString: process.env.PG_CONNECTION_STRING,
+      ssl: { rejectUnauthorized: false },
+    },
     // connection: {
     //   host: process.env.DB_HOST,
     //   database: process.env.DATABASE,
@@ -32,7 +35,10 @@ module.exports = {
 
   production: {
     client: 'pg',
-    connection: process.env.PG_CONNECTION_STRING,
+    connection: {
+      connectionString: process.env.PG_CONNECTION_STRING,
+      ssl: { rejectUnauthorized: false },
+    },
     // connection: {
     //   host: process.env.DB_HOST,
     //   database: process.env.DATABASE,
