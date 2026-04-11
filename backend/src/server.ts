@@ -29,6 +29,9 @@ const corsOptions: cors.CorsOptions = {
   credentials: true,
 };
 
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+console.log("Frontend URL:", frontendUrl);
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -46,6 +49,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   }),
