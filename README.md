@@ -185,7 +185,7 @@ weesha/
 3. Set Root Directory: `backend`
 4. Configure environment variables:
    ```
-   NODE_ENV=production
+   ENV=production
    PORT=3001
    SESSION_SECRET=<generate-secure-random-string>
    FRONTEND_URL=https://your-frontend.vercel.app

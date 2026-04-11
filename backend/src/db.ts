@@ -13,7 +13,7 @@ const config: Record<string, object> = {
   },
 };
 
-const environment = process.env.NODE_ENV || "development";
+const environment = process.env.ENV || "development";
 export const db = knex(config[environment] || config.development);
 
 export default db;
