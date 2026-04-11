@@ -6,7 +6,7 @@ exports.up = async function (knex) {
   await knex.schema.createTableIfNotExists('sessions', function (table) {
     table.string('sid').primary();
     table.json('sess').notNullable();
-    table.bigInteger('expired').unsigned().notNullable();
+    table.datetime('expired').notNullable();
   });
 };
 
