@@ -65,13 +65,13 @@ export default function CelebrationPage() {
   }, [wishes]);
 
   useEffect(() => {
-    if (celebration?.userId) {
-      const activated = localStorage.getItem(`confetti_activated_user_${celebration.userId}`);
+    if (celebration?.id) {
+      const activated = localStorage.getItem(`confetti_activated_${celebration.id}`);
       if (activated) {
         setHasActivatedConfetti(true);
       }
     }
-  }, [celebration?.userId]);
+  }, [celebration?.id]);
 
   useEffect(() => {
     if (!celebration?.id) return;
@@ -144,14 +144,14 @@ export default function CelebrationPage() {
   const confettiMutation = useMutation({
     mutationFn: () => api.celebrations.addConfetti(celebration!.id),
     onSuccess: () => {
-      localStorage.setItem(`confetti_activated_user_${celebration?.userId}`, "true");
+      localStorage.setItem(`confetti_activated_${celebration?.id}`, "true");
       setHasActivatedConfetti(true);
       refetchCelebration();
       triggerConfetti();
     },
     onError: (error: { error?: string }) => {
-      if (error?.error === "You have already celebrated this creator!") {
-        localStorage.setItem(`confetti_activated_user_${celebration?.userId}`, "true");
+      if (error?.error === "You have already celebrated this event!") {
+        localStorage.setItem(`confetti_activated_${celebration?.id}`, "true");
         setHasActivatedConfetti(true);
       }
     },

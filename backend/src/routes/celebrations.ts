@@ -133,14 +133,10 @@ router.get('/:id/confetti', async (req, res) => {
 router.get('/:id/confetti/activations', async (req, res) => {
   try {
     const { id } = req.params;
-    const celebration = await db('celebrations').where({ id: parseInt(id) }).first();
-    
-    if (!celebration) {
-      return res.status(404).json({ error: 'Celebration not found' });
-    }
+    const celebrationId = parseInt(id);
 
     const activations = await db('confetti_activations')
-      .where({ userId: celebration.userId })
+      .where({ celebrationId })
       .select('visitorId');
 
     res.json({ activations: activations.map((a: { visitorId: string }) => a.visitorId) });
@@ -172,18 +168,27 @@ router.post('/:id/confetti', async (req, res) => {
       return res.status(400).json({ error: 'Celebration has expired' });
     }
 
+    const celebrationId = parseInt(id);
     const existing = await db('confetti_activations')
-      .where({ userId: celebration.userId, visitorId })
+      .where({ celebrationId, visitorId })
       .first();
 
     if (existing) {
-      return res.status(400).json({ error: 'You have already celebrated this creator!' });
+      return res.status(400).json({ error: 'You have already celebrated this event!' });
     }
 
-    await db('confetti_activations').insert({
-      userId: celebration.userId,
-      visitorId,
-    });
+    try {
+      await db('confetti_activations').insert({
+        celebrationId,
+        visitorId,
+      });
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === '23505') {
+        return res.status(400).json({ error: 'You have already celebrated this event!' });
+      }
+      throw error;
+    }
 
     await db('celebrations')
       .where({ id: parseInt(id) })
