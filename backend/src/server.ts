@@ -13,7 +13,14 @@ import celebrationRoutes from "./routes/celebrations";
 import wishRoutes from "./routes/wishes";
 import db from "./db";
 
-dotenv.config();
+const env = process.env.NODE_ENV || "development";
+const isProduction = env === "production";
+
+if (isProduction) {
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
+} else {
+  dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -47,9 +54,9 @@ app.use(
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   }),
