@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node src/server.ts",
     "build": "tsc",
-    "start": "NODE_ENV=production knex migrate:latest && node dist/server.js",
+    "start": "knex migrate:latest && node dist/server.js",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "test": "jest",
