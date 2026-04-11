@@ -1,19 +1,11 @@
 import knex from "knex";
+import dotenv from "dotenv";
 
-const config: Record<string, object> = {
-  development: {
-    client: "sqlite3",
-    connection: {
-      filename: "./dev.sqlite3",
-    },
-    useNullAsDefault: true,
-    migrations: {
-      directory: "./migrations",
-    },
-  },
-};
+dotenv.config();
 
+const config = require("../knexfile.js");
 const environment = process.env.NODE_ENV || "development";
+
 export const db = knex(config[environment] || config.development);
 
 export default db;
