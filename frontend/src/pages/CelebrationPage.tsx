@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import confetti from 'canvas-confetti';
-import { api, getVisitorId } from '../api/client';
-import WishForm from '../components/WishForm';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import confetti from "canvas-confetti";
+import { api, getVisitorId } from "../api/client";
+import WishForm from "../components/WishForm";
+import SEO from "../components/SEO";
 
 const WISH_DURATION = 5000;
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 interface Wish {
   id: number;
@@ -18,20 +19,20 @@ interface Wish {
   createdAt: string;
 }
 
-type ViewMode = 'details' | 'wishes';
+type ViewMode = "details" | "wishes";
 
 const EVENT_EMOJIS: Record<string, string> = {
-  birthday: '🎂',
-  wedding: '💒',
-  babyshower: '👶',
-  anniversary: '❤️',
-  graduation: '🎓',
-  other: '🎉',
+  birthday: "🎂",
+  wedding: "💒",
+  babyshower: "👶",
+  anniversary: "❤️",
+  graduation: "🎓",
+  other: "🎉",
 };
 
 export default function CelebrationPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [viewMode, setViewMode] = useState<ViewMode>('details');
+  const [viewMode, setViewMode] = useState<ViewMode>("details");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -46,8 +47,12 @@ export default function CelebrationPage() {
   const wishesRef = useRef<Wish[]>([]);
   const currentIndexRef = useRef(0);
 
-  const { data: celebration, isLoading: loadingCelebration, refetch: refetchCelebration } = useQuery({
-    queryKey: ['celebration', slug],
+  const {
+    data: celebration,
+    isLoading: loadingCelebration,
+    refetch: refetchCelebration,
+  } = useQuery({
+    queryKey: ["celebration", slug],
     queryFn: () => api.celebrations.getBySlug(slug!),
   });
 
@@ -74,11 +79,8 @@ export default function CelebrationPage() {
     const loadInitialData = async () => {
       setIsLoadingWishes(true);
       try {
-        const [wishesData, activationsData] = await Promise.all([
-          api.celebrations.getWishes(celebration.id),
-          api.celebrations.getConfettiActivations(celebration.id),
-        ]);
-        
+        const [wishesData, activationsData] = await Promise.all([api.celebrations.getWishes(celebration.id), api.celebrations.getConfettiActivations(celebration.id)]);
+
         setWishes(wishesData);
         setHasInitiallyLoaded(true);
 
@@ -91,7 +93,7 @@ export default function CelebrationPage() {
           });
         }
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error("Failed to load data:", error);
         setHasInitiallyLoaded(true);
       } finally {
         setIsLoadingWishes(false);
@@ -100,15 +102,13 @@ export default function CelebrationPage() {
 
     loadInitialData();
 
-    const eventSource = new EventSource(
-      `${API_BASE}/api/celebrations/${celebration.id}/wishes/stream?visitorId=${encodeURIComponent(visitorId)}`
-    );
+    const eventSource = new EventSource(`${API_BASE}/api/celebrations/${celebration.id}/wishes/stream?visitorId=${encodeURIComponent(visitorId)}`);
     eventSourceRef.current = eventSource;
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'confetti') {
+        if (data.type === "confetti") {
           if (isOwner) {
             const wishIndex = wishesRef.current.findIndex((w) => w.visitorId === data.visitorId);
             if (wishIndex !== -1) {
@@ -128,7 +128,7 @@ export default function CelebrationPage() {
           });
         }
       } catch (error) {
-        console.error('Failed to parse event:', error);
+        console.error("Failed to parse event:", error);
       }
     };
 
@@ -144,14 +144,14 @@ export default function CelebrationPage() {
   const confettiMutation = useMutation({
     mutationFn: () => api.celebrations.addConfetti(celebration!.id),
     onSuccess: () => {
-      localStorage.setItem(`confetti_activated_user_${celebration?.userId}`, 'true');
+      localStorage.setItem(`confetti_activated_user_${celebration?.userId}`, "true");
       setHasActivatedConfetti(true);
       refetchCelebration();
       triggerConfetti();
     },
     onError: (error: { error?: string }) => {
-      if (error?.error === 'You have already celebrated this creator!') {
-        localStorage.setItem(`confetti_activated_user_${celebration?.userId}`, 'true');
+      if (error?.error === "You have already celebrated this creator!") {
+        localStorage.setItem(`confetti_activated_user_${celebration?.userId}`, "true");
         setHasActivatedConfetti(true);
       }
     },
@@ -160,7 +160,7 @@ export default function CelebrationPage() {
   const triggerConfetti = useCallback(() => {
     const duration = 2000;
     const end = Date.now() + duration;
-    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+    const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
 
     (function frame() {
       confetti({
@@ -184,14 +184,17 @@ export default function CelebrationPage() {
     })();
   }, []);
 
-  const triggerConfettiAtWish = useCallback((wishIndex: number) => {
-    triggerConfetti();
-    setTimeout(() => {
-      currentIndexRef.current = wishIndex;
-      setCurrentIndex(wishIndex);
-      setProgress(0);
-    }, 100);
-  }, [triggerConfetti]);
+  const triggerConfettiAtWish = useCallback(
+    (wishIndex: number) => {
+      triggerConfetti();
+      setTimeout(() => {
+        currentIndexRef.current = wishIndex;
+        setCurrentIndex(wishIndex);
+        setProgress(0);
+      }, 100);
+    },
+    [triggerConfetti],
+  );
 
   const goToNext = useCallback(() => {
     const len = wishesRef.current.length;
@@ -214,40 +217,44 @@ export default function CelebrationPage() {
   useEffect(() => {
     if (progressRef.current) {
       clearInterval(progressRef.current);
-    }
-    
-    if (isPaused || !autoAdvance || viewMode !== 'wishes') {
       progressRef.current = null;
+    }
+
+    if (isPaused || !autoAdvance || viewMode !== "wishes" || wishesRef.current.length === 0) {
       return;
     }
 
-    const intervalId = setInterval(() => {
-      const len = wishesRef.current.length;
-      if (len === 0) return;
-      
-      setProgress((prev) => {
-        if (prev >= 100) {
+    let progress = 0;
+
+    progressRef.current = setInterval(() => {
+      progress += 2;
+
+      if (progress >= 100) {
+        progress = 0;
+        const len = wishesRef.current.length;
+        if (len > 0) {
           const nextIndex = (currentIndexRef.current + 1) % len;
           currentIndexRef.current = nextIndex;
           setCurrentIndex(nextIndex);
-          return 0;
         }
-        return prev + 1;
-      });
+      }
+
+      setProgress(progress);
     }, 50);
 
-    progressRef.current = intervalId;
-
     return () => {
-      clearInterval(intervalId);
+      if (progressRef.current) {
+        clearInterval(progressRef.current);
+        progressRef.current = null;
+      }
     };
   }, [isPaused, autoAdvance, viewMode]);
 
   const handleTap = (e: React.MouseEvent) => {
-    if (viewMode !== 'wishes') return;
+    if (viewMode !== "wishes") return;
     const screenWidth = window.innerWidth;
     const tapX = e.clientX;
-    
+
     if (tapX < screenWidth * 0.3) {
       goToPrev();
     } else if (tapX > screenWidth * 0.7) {
@@ -278,56 +285,49 @@ export default function CelebrationPage() {
   const currentWish = wishes[currentIndex];
 
   return (
-    <div 
-      className="fixed inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400"
-      onClick={handleTap}
-      onMouseDown={() => setIsPaused(true)}
-      onMouseUp={() => setIsPaused(false)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={() => setIsPaused(true)}
-      onTouchEnd={() => setIsPaused(false)}
-    >
+    <>
+      <SEO 
+        title={celebration.title}
+        description={`${celebration.type === 'birthday' ? '🎂' : celebration.type === 'wedding' ? '💒' : '🎉'} ${celebration.title} - Leave your wishes and celebrate!`}
+      />
+      <div className="fixed inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400" onClick={handleTap} onMouseDown={() => setIsPaused(true)} onMouseUp={() => setIsPaused(false)} onMouseLeave={() => setIsPaused(false)} onTouchStart={() => setIsPaused(true)} onTouchEnd={() => setIsPaused(false)}>
       {/* Tab toggle */}
       <div className="absolute top-4 right-4 z-50 flex bg-white/20 backdrop-blur-sm rounded-full p-1">
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setViewMode('details');
+            setViewMode("details");
           }}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-            viewMode === 'details' ? 'bg-white text-gray-900' : 'text-white hover:bg-white/20'
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition ${viewMode === "details" ? "bg-white text-gray-900" : "text-white hover:bg-white/20"}`}
         >
           Details
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setViewMode('wishes');
+            setViewMode("wishes");
           }}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-            viewMode === 'wishes' ? 'bg-white text-gray-900' : 'text-white hover:bg-white/20'
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition ${viewMode === "wishes" ? "bg-white text-gray-900" : "text-white hover:bg-white/20"}`}
         >
           Wishes {wishes.length > 0 && `(${wishes.length})`}
         </button>
       </div>
 
       {/* Details View */}
-      {viewMode === 'details' && (
+      {viewMode === "details" && (
         <div className="h-full flex flex-col items-center justify-center p-8 text-white">
-          <div className="text-8xl mb-6">{EVENT_EMOJIS[celebration.type] || '🎉'}</div>
+          <div className="text-8xl mb-6">{EVENT_EMOJIS[celebration.type] || "🎉"}</div>
           <h1 className="text-4xl font-bold text-center mb-2">{celebration.title}</h1>
           <p className="text-xl opacity-90 capitalize mb-8">{celebration.type}</p>
-          
+
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center mb-8">
             <p className="text-sm opacity-70 mb-1">Event Date</p>
             <p className="text-lg font-semibold">
-              {new Date(celebration.eventDate).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+              {new Date(celebration.eventDate).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </p>
           </div>
@@ -344,25 +344,25 @@ export default function CelebrationPage() {
           )}
 
           {!isExpired && !isOwner && (
-            <div className="flex gap-4 mt-4">
+            <div className="flex gap-2 mt-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   confettiMutation.mutate();
                 }}
                 disabled={confettiMutation.isPending || hasActivatedConfetti}
-                className="px-8 py-4 bg-white text-gray-900 rounded-full font-semibold text-lg hover:scale-105 transition shadow-lg disabled:opacity-50"
+                className="px-4 py-2 bg-white text-gray-900 rounded-full font-semibold text-sm hover:scale-105 transition shadow-lg disabled:opacity-50"
               >
-                {hasActivatedConfetti ? '✨ Celebrated!' : '🎉 Celebrate!'}
+                {hasActivatedConfetti ? "✨ Celebrated!" : "🎉 Celebrate!"}
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowForm(true);
                 }}
-                className="px-8 py-4 bg-white/20 backdrop-blur-sm text-white rounded-full font-semibold text-lg hover:bg-white/30 transition"
+                className="px-4 py-2 bg-pink-500 text-white rounded-full font-semibold text-sm hover:bg-pink-600 transition shadow-lg"
               >
-                ✍️ Leave a Wish
+                ✍️ Add a Wish
               </button>
             </div>
           )}
@@ -372,7 +372,7 @@ export default function CelebrationPage() {
               onClick={async (e) => {
                 e.stopPropagation();
                 const shareUrl = window.location.href;
-                
+
                 if (navigator.share) {
                   try {
                     await navigator.share({
@@ -382,14 +382,14 @@ export default function CelebrationPage() {
                     });
                     return;
                   } catch (err) {
-                    if ((err as Error).name === 'AbortError') return;
+                    if ((err as Error).name === "AbortError") return;
                   }
                 }
                 navigator.clipboard.writeText(shareUrl);
               }}
-              className="mt-4 px-6 py-3 bg-white text-gray-900 rounded-full font-semibold hover:scale-105 transition shadow-lg flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-white text-gray-900 rounded-full font-semibold text-sm hover:scale-105 transition shadow-lg flex items-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
               Share
@@ -399,7 +399,7 @@ export default function CelebrationPage() {
       )}
 
       {/* Wishes View */}
-      {viewMode === 'wishes' && (
+      {viewMode === "wishes" && (
         <>
           {/* Progress bars */}
           <div className="absolute top-16 left-4 right-4 z-40 flex gap-1">
@@ -408,7 +408,7 @@ export default function CelebrationPage() {
                 <div
                   className="h-full bg-white rounded-full transition-all duration-50"
                   style={{
-                    width: i < currentIndex ? '100%' : i === currentIndex ? `${progress}%` : '0%',
+                    width: i < currentIndex ? "100%" : i === currentIndex ? `${progress}%` : "0%",
                   }}
                 />
               </div>
@@ -422,25 +422,15 @@ export default function CelebrationPage() {
             </div>
           ) : currentWish ? (
             <div className="h-full flex flex-col items-center justify-center p-8 pt-16 pb-24 text-white">
-              {currentWish.imageUrl && (
-                <img
-                  src={currentWish.imageUrl}
-                  alt="Wish"
-                  className="w-full max-w-md h-64 object-cover rounded-2xl mb-8 shadow-2xl"
-                />
-              )}
-              <p className="text-2xl font-medium text-center leading-relaxed mb-6 max-w-lg">
-                "{currentWish.message}"
-              </p>
+              {currentWish.imageUrl && <img src={currentWish.imageUrl} alt="Wish" className="w-full max-w-md h-64 object-cover rounded-2xl mb-8 shadow-2xl" />}
+              <p className="text-2xl font-medium text-center leading-relaxed mb-6 max-w-lg">"{currentWish.message}"</p>
               <div className="flex items-center gap-3 text-white/80">
-                <span className="font-semibold text-lg">
-                  {currentWish.name || 'Anonymous'}
-                </span>
+                <span className="font-semibold text-lg">{currentWish.name || "Anonymous"}</span>
                 <span className="text-white/50">•</span>
                 <span className="text-sm">
-                  {new Date(currentWish.createdAt).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date(currentWish.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </span>
               </div>
@@ -449,7 +439,7 @@ export default function CelebrationPage() {
             <div className="h-full flex flex-col items-center justify-center p-8 text-white">
               <div className="text-8xl mb-6">📝</div>
               <h2 className="text-2xl font-bold mb-2">No wishes yet</h2>
-              <p className="text-white/70 mb-6">Be the first to leave a wish!</p>
+              {/* <p className="text-white/70 mb-6">Be the first to leave a wish!</p> */}
               {!isExpired && !isOwner && (
                 <button
                   onClick={(e) => {
@@ -458,7 +448,7 @@ export default function CelebrationPage() {
                   }}
                   className="px-8 py-4 bg-white text-gray-900 rounded-full font-semibold text-lg hover:scale-105 transition shadow-lg"
                 >
-                  ✍️ Leave a Wish
+                  ✍️ Add a Wish
                 </button>
               )}
             </div>
@@ -493,7 +483,7 @@ export default function CelebrationPage() {
                 }}
                 className="w-full py-4 bg-white text-gray-900 rounded-full font-semibold text-lg hover:scale-105 transition shadow-lg"
               >
-                ✍️ Leave a Wish
+                ✍️ Add a Wish
               </button>
             </div>
           )}
@@ -511,5 +501,6 @@ export default function CelebrationPage() {
         />
       )}
     </div>
+    </>
   );
 }

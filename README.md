@@ -7,6 +7,7 @@ A beautiful, mobile-first celebration wishes application where users create time
 ## Features
 
 ### For Celebration Creators
+
 - **Create Celebrations**: Set up celebrations with title, type, and date
 - **3-Day Wish Window**: Wishes automatically close 3 days after the event date
 - **Real-time Updates**: See new wishes appear instantly via Server-Sent Events
@@ -14,7 +15,8 @@ A beautiful, mobile-first celebration wishes application where users create time
 - **Share Easily**: One-tap sharing with native Web Share API
 
 ### For Visitors
-- **Leave Wishes**: Send heartfelt messages with photos and emojis
+
+- **Add Wishes**: Send heartfelt messages with photos and emojis
 - **Celebrate**: Trigger confetti celebrations
 - **Privacy**: Visitors only see their own wishes
 - **One Celebration Per Creator**: You can only celebrate a creator once (not per event)
@@ -22,6 +24,7 @@ A beautiful, mobile-first celebration wishes application where users create time
 ## Tech Stack
 
 ### Backend
+
 - **Runtime**: Node.js with TypeScript
 - **Framework**: Express.js
 - **Database**: PostgreSQL with Knex.js query builder
@@ -30,6 +33,7 @@ A beautiful, mobile-first celebration wishes application where users create time
 - **Real-time**: Server-Sent Events (SSE)
 
 ### Frontend
+
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS v4
@@ -40,6 +44,7 @@ A beautiful, mobile-first celebration wishes application where users create time
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 - PostgreSQL database
@@ -146,27 +151,30 @@ wisha/
 ## API Endpoints
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Create account |
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Get current user |
+
+| Method | Endpoint             | Description      |
+| ------ | -------------------- | ---------------- |
+| POST   | `/api/auth/register` | Create account   |
+| POST   | `/api/auth/login`    | Login            |
+| POST   | `/api/auth/logout`   | Logout           |
+| GET    | `/api/auth/me`       | Get current user |
 
 ### Celebrations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/celebrations` | Create celebration (auth required) |
-| GET | `/api/celebrations/:slug` | Get by slug (public) |
-| GET | `/api/celebrations/:id/wishes` | Get wishes |
-| GET | `/api/celebrations/:id/wishes/stream` | SSE stream for wishes |
-| POST | `/api/celebrations/:id/confetti` | Celebrate (one per creator) |
-| GET | `/api/celebrations/user/my-celebrations` | Get user's celebrations |
+
+| Method | Endpoint                                 | Description                        |
+| ------ | ---------------------------------------- | ---------------------------------- |
+| POST   | `/api/celebrations`                      | Create celebration (auth required) |
+| GET    | `/api/celebrations/:slug`                | Get by slug (public)               |
+| GET    | `/api/celebrations/:id/wishes`           | Get wishes                         |
+| GET    | `/api/celebrations/:id/wishes/stream`    | SSE stream for wishes              |
+| POST   | `/api/celebrations/:id/confetti`         | Celebrate (one per creator)        |
+| GET    | `/api/celebrations/user/my-celebrations` | Get user's celebrations            |
 
 ### Wishes
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/wishes` | Create wish with optional image |
+
+| Method | Endpoint      | Description                     |
+| ------ | ------------- | ------------------------------- |
+| POST   | `/api/wishes` | Create wish with optional image |
 
 ## Deployment
 
@@ -206,17 +214,22 @@ wisha/
 ## How It Works
 
 ### Visitor Tracking
+
 Visitors are tracked via a unique `visitorId` stored in localStorage. This allows:
+
 - Visitors to see only their own wishes on a celebration page
 - The system to ensure one confetti celebration per visitor per creator
 
 ### Confetti System
+
 - Visitors can trigger confetti once per celebration creator (not per event)
 - The celebration creator sees confetti bursts on the wish belonging to the visitor who celebrated
 - Confetti is tracked in the database and broadcast via SSE to all connected viewers
 
 ### Real-time Updates
+
 Server-Sent Events (SSE) provide real-time wish updates:
+
 - New wishes appear instantly
 - Confetti celebrations are broadcast to all viewers
 - No polling required
