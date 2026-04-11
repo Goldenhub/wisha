@@ -7,10 +7,10 @@ export default function Home() {
 
   return (
     <>
-      <SEO title="Wisha" description="Create beautiful celebration pages and collect heartfelt wishes from friends and family. Perfect for birthdays, weddings, graduations, and more." />
+      <SEO title="Weesha" description="Create beautiful celebration pages and collect heartfelt wishes from friends and family. Perfect for birthdays, weddings, graduations, and more." />
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center p-4">
         <div className="text-center text-white max-w-2xl">
-          <h1 className="text-6xl font-bold mb-6 animate-bounce">Wisha</h1>
+          <h1 className="text-6xl font-bold mb-6 animate-bounce">Weesha</h1>
           <p className="text-2xl mb-8 opacity-90">Create time-bound celebration pages and share the joy</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

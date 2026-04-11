@@ -57,7 +57,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-purple-600">Wisha</h1>
+          <h1 className="text-2xl font-bold text-purple-600">Weesha</h1>
           <div className="flex gap-4">
             <button onClick={() => navigate("/create")} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
               Create New

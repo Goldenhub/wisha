@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Wisha API Backend",
+  "description": "Weesha API Backend",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node src/server.ts",

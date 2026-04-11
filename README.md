@@ -1,8 +1,8 @@
-# Wisha - Celebration Wishes App
+# Weesha - Celebration Wishes App
 
 A beautiful, mobile-first celebration wishes application where users create time-bound celebration pages and visitors can leave wishes with images, emojis, and confetti reactions.
 
-![Wisha Preview]
+![Weesha Preview]
 
 ## Features
 
@@ -61,7 +61,7 @@ PORT=3001
 SESSION_SECRET=your-development-secret-key
 FRONTEND_URL=http://localhost:5173
 DB_HOST=localhost
-DATABASE=wisha
+DATABASE=weesha
 USER=postgres
 PASSWORD=your-password
 CLOUDINARY_CLOUD_NAME=your-cloud-name
@@ -81,8 +81,8 @@ VITE_API_URL=http://localhost:3001
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/wisha.git
-cd wisha
+git clone https://github.com/yourusername/weesha.git
+cd weesha
 
 # Install backend dependencies
 cd backend
@@ -117,7 +117,7 @@ Visit http://localhost:5173
 ## Project Structure
 
 ```
-wisha/
+weesha/
 ├── backend/
 │   ├── src/
 │   │   ├── routes/          # API route handlers

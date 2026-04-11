@@ -1,9 +1,9 @@
-# Wisha - Celebration Wishes App
+# Weesha - Celebration Wishes App
 
 ## Project Structure
 
 ```
-wisha/
+weesha/
 ├── frontend/          # React + Vite + TypeScript
 │   ├── src/
 │   │   ├── api/       # API client functions
