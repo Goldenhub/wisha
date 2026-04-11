@@ -3,8 +3,16 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
-  await knex.schema.raw('ALTER TABLE sessions DROP COLUMN IF EXISTS expired');
-  await knex.schema.raw('ALTER TABLE sessions ADD COLUMN expired TIMESTAMP NOT NULL');
+  const client = knex.client.constructor.name;
+  
+  if (client === 'PostgreSQL_Client') {
+    try {
+      await knex.schema.raw('ALTER TABLE sessions DROP COLUMN expired');
+    } catch (e) {
+      // Column might not exist or already be TIMESTAMP
+    }
+    await knex.schema.raw('ALTER TABLE sessions ADD COLUMN expired TIMESTAMP NOT NULL');
+  }
 };
 
 /**
@@ -12,6 +20,14 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
-  await knex.schema.raw('ALTER TABLE sessions DROP COLUMN IF EXISTS expired');
-  await knex.schema.raw('ALTER TABLE sessions ADD COLUMN expired BIGINT NOT NULL');
+  const client = knex.client.constructor.name;
+  
+  if (client === 'PostgreSQL_Client') {
+    try {
+      await knex.schema.raw('ALTER TABLE sessions DROP COLUMN expired');
+    } catch (e) {
+      // Column might not exist
+    }
+    await knex.schema.raw('ALTER TABLE sessions ADD COLUMN expired BIGINT NOT NULL');
+  }
 };
