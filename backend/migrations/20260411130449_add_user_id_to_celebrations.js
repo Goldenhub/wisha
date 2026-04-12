@@ -3,9 +3,10 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
-  await knex.schema.alterTable('celebrations', function (table) {
-    table.integer('userId').unsigned().references('id').inTable('users').onDelete('CASCADE');
-  });
+  const hasColumn = await knex.schema.hasColumn('celebrations', 'userId');
+  if (!hasColumn) {
+    await knex.schema.raw('ALTER TABLE celebrations ADD COLUMN "userId" INTEGER REFERENCES users(id) ON DELETE CASCADE');
+  }
 };
 
 /**
@@ -13,7 +14,8 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
-  await knex.schema.alterTable('celebrations', function (table) {
-    table.dropColumn('userId');
-  });
+  const hasColumn = await knex.schema.hasColumn('celebrations', 'userId');
+  if (hasColumn) {
+    await knex.schema.raw('ALTER TABLE celebrations DROP COLUMN "userId"');
+  }
 };

@@ -3,9 +3,10 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
-  await knex.schema.alterTable('wishes', function (table) {
-    table.string('visitorId').nullable();
-  });
+  const hasColumn = await knex.schema.hasColumn('wishes', 'visitorId');
+  if (!hasColumn) {
+    await knex.schema.raw('ALTER TABLE wishes ADD COLUMN "visitorId" TEXT');
+  }
 };
 
 /**
@@ -13,7 +14,8 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
-  await knex.schema.alterTable('wishes', function (table) {
-    table.dropColumn('visitorId');
-  });
+  const hasColumn = await knex.schema.hasColumn('wishes', 'visitorId');
+  if (hasColumn) {
+    await knex.schema.raw('ALTER TABLE wishes DROP COLUMN "visitorId"');
+  }
 };

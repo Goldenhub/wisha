@@ -3,11 +3,12 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
+  const hasTable = await knex.schema.hasTable('sessions');
+  if (!hasTable) return;
+  
   try {
     await knex.schema.raw('ALTER TABLE sessions DROP COLUMN expired');
-  } catch (e) {
-    // Column might not exist or already be TIMESTAMP
-  }
+  } catch (e) {}
   await knex.schema.raw('ALTER TABLE sessions ADD COLUMN expired TIMESTAMP NOT NULL');
 };
 
@@ -16,10 +17,11 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
+  const hasTable = await knex.schema.hasTable('sessions');
+  if (!hasTable) return;
+  
   try {
     await knex.schema.raw('ALTER TABLE sessions DROP COLUMN expired');
-  } catch (e) {
-    // Column might not exist
-  }
+  } catch (e) {}
   await knex.schema.raw('ALTER TABLE sessions ADD COLUMN expired BIGINT NOT NULL');
 };

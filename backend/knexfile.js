@@ -1,12 +1,19 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env.local') });
 
 module.exports = {
   development: {
     client: 'pg',
-    connection: process.env.PG_CONNECTION_STRING || 'postgresql://localhost:5432/weesha',
-    ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    connection: {
+      connectionString: process.env.PG_CONNECTION_STRING,
+      ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    },
+    pool: {
+      min: 2,
+      max: 10
+    },
     migrations: {
-      directory: './migrations'
+      directory: './migrations',
+      disableTransactions: true
     }
   },
 
@@ -21,7 +28,8 @@ module.exports = {
       max: 10
     },
     migrations: {
-      directory: './migrations'
+      directory: './migrations',
+      disableTransactions: true
     }
   }
 };
