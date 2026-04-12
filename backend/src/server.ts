@@ -7,6 +7,7 @@ import session from "express-session";
 import { ConnectSessionKnexStore } from "connect-session-knex";
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
+import cron from "node-cron";
 
 import authRoutes from "./routes/auth";
 import celebrationRoutes from "./routes/celebrations";
@@ -111,6 +112,52 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+async function cleanupDeletedAccounts() {
+  console.log("[CRON] Starting cleanup of deleted accounts...");
+  try {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    
+    const usersToDelete = await db('users')
+      .where('deletedAt', '<', threeDaysAgo)
+      .whereNotNull('deletedAt')
+      .select('id');
+
+    for (const user of usersToDelete) {
+      const celebrations = await db('celebrations').where({ userId: user.id }).select('id');
+      const celebrationIds = celebrations.map(c => c.id);
+      
+      if (celebrationIds.length > 0) {
+        const wishes = await db('wishes').whereIn('celebrationId', celebrationIds).select('imageUrl');
+        for (const wish of wishes) {
+          if (wish.imageUrl?.includes('cloudinary.com')) {
+            const publicId = wish.imageUrl.split('/').pop()?.split('.')[0];
+            if (publicId) {
+              try {
+                await cloudinary.uploader.destroy(`weesha/${publicId}`);
+              } catch (cloudinaryError) {
+                console.error('[CRON] Failed to delete image from Cloudinary:', cloudinaryError);
+              }
+            }
+          }
+        }
+      }
+
+      await db('sessions').whereRaw("sess->>'userId' = ?", [user.id]).del();
+      await db('users').where({ id: user.id }).del();
+      console.log(`[CRON] Deleted user ${user.id} - cascade handled celebrations, wishes, confetti_activations`);
+    }
+
+    console.log(`[CRON] Cleanup complete. Deleted ${usersToDelete.length} account(s)`);
+  } catch (error) {
+    console.error('[CRON] Cleanup failed:', error);
+  }
+}
+
+cron.schedule('0 0 * * *', () => {
+  cleanupDeletedAccounts();
+});
+console.log('[CRON] Scheduled daily cleanup at midnight');
 
 app.listen(PORT, () => {
   console.log(`Weesha API server running on port ${PORT}`);

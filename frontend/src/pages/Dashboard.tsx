@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
@@ -57,11 +57,14 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-purple-600">Weesha</h1>
-          <div className="flex gap-4">
+          <Link to="/" className="text-2xl font-bold text-purple-600">Weesha</Link>
+          <div className="flex gap-4 items-center">
             <button onClick={() => navigate("/create")} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
               Create New
             </button>
+            <Link to="/settings" className="px-4 py-2 text-gray-600 hover:text-purple-600 transition">
+              Settings
+            </Link>
             <button onClick={() => logout()} className="px-4 py-2 text-gray-600 hover:text-gray-800 transition">
               Logout
             </button>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { getVisitorId } from '../api/client';
 
@@ -19,6 +19,11 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    messageInputRef.current?.focus();
+  }, []);
 
   const wishMutation = useMutation({
     mutationFn: async (data: { name?: string; message: string }) => {
@@ -76,25 +81,34 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
     : message;
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black z-50 flex flex-col safe-area-bottom"
+      style={{ height: '100dvh' }}
+    >
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white text-2xl font-light"
+        className="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white text-2xl font-light bg-black/30 rounded-full"
+      >
+        ←
+      </button>
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white text-2xl font-light bg-black/30 rounded-full"
       >
         ✕
       </button>
 
-      {/* Preview area */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      {/* Preview area - scrollable */}
+      <div className="flex-1 overflow-y-auto flex items-start justify-center p-4 pt-16">
         <div className="max-w-md w-full">
           {/* Image preview */}
           {imagePreview ? (
-            <div className="relative mb-6">
+            <div className="relative mb-4">
               <img
                 src={imagePreview}
                 alt="Wish"
-                className="w-full h-64 object-cover rounded-2xl shadow-2xl"
+                className="w-full h-48 sm:h-64 object-cover rounded-2xl shadow-2xl"
               />
               <button
                 onClick={() => {
@@ -109,9 +123,9 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
           ) : (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-full h-64 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition"
+              className="w-full h-40 sm:h-48 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition"
             >
-              <div className="text-6xl mb-2">📷</div>
+              <div className="text-5xl mb-2">📷</div>
               <p className="text-white/80 text-sm">Tap to add photo</p>
             </div>
           )}
@@ -128,7 +142,7 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
           {/* Message preview */}
           {fullMessage && (
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-4">
-              <p className="text-white text-xl text-center leading-relaxed">
+              <p className="text-white text-lg sm:text-xl text-center leading-relaxed">
                 "{fullMessage}"
               </p>
               {name && (
@@ -141,51 +155,52 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
         </div>
       </div>
 
-      {/* Input area */}
-      <div className="bg-black/80 backdrop-blur-lg p-4">
-        {/* Name input */}
-        <div className="max-w-md mx-auto mb-4">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name (optional)"
-            className="w-full bg-white/10 text-white placeholder-white/40 rounded-full px-4 py-3 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-        </div>
-
-        {/* Message input */}
-        <div className="max-w-md mx-auto mb-4">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your wish..."
-            rows={2}
-            className="w-full bg-white/10 text-white placeholder-white/40 rounded-2xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-        </div>
-
-        {/* Emoji picker */}
-        <div className="max-w-md mx-auto mb-4">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {EMOJIS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => toggleEmoji(emoji)}
-                className={`w-12 h-12 text-2xl rounded-full transition-all ${
-                  selectedEmojis.includes(emoji)
-                    ? 'bg-purple-500 scale-110'
-                    : 'bg-white/10 hover:bg-white/20'
-                }`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Send button */}
+      {/* Input area - fixed at bottom with padding for keyboard */}
+      <div className="bg-black/90 backdrop-blur-lg p-4 pb-8">
         <div className="max-w-md mx-auto">
+          {/* Name input */}
+          <div className="mb-3">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name (optional)"
+              className="w-full bg-white/10 text-white placeholder-white/40 rounded-full px-4 py-3 text-center text-base focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          {/* Message input */}
+          <div className="mb-3">
+            <textarea
+              ref={messageInputRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type your wish..."
+              rows={2}
+              className="w-full bg-white/10 text-white placeholder-white/40 rounded-2xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-base"
+            />
+          </div>
+
+          {/* Emoji picker - scrollable on mobile */}
+          <div className="mb-4 overflow-x-auto">
+            <div className="flex gap-2 justify-start pb-2">
+              {EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => toggleEmoji(emoji)}
+                  className={`w-11 h-11 text-xl rounded-full transition-all flex-shrink-0 ${
+                    selectedEmojis.includes(emoji)
+                      ? 'bg-purple-500 scale-110'
+                      : 'bg-white/10 hover:bg-white/20'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Send button */}
           <button
             onClick={handleSubmit}
             disabled={wishMutation.isPending || !fullMessage.trim()}
@@ -205,14 +220,14 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
               </span>
             )}
           </button>
-        </div>
 
-        {/* Error message */}
-        {wishMutation.error && (
-          <p className="text-red-400 text-sm text-center mt-3">
-            {(wishMutation.error as Error).message || 'Failed to send wish'}
-          </p>
-        )}
+          {/* Error message */}
+          {wishMutation.error && (
+            <p className="text-red-400 text-sm text-center mt-3">
+              {(wishMutation.error as Error).message || 'Failed to send wish'}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

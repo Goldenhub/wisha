@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import SEO from "../components/SEO";
+import Header from "../components/Header";
 
 const FEATURES = [
   {
@@ -27,7 +28,6 @@ const FEATURES = [
 
 export default function Home() {
   const { isAuthenticated } = useAuthStore();
-
   return (
     <>
       <SEO 
@@ -35,23 +35,7 @@ export default function Home() {
         description="Create time-bound celebration pages and collect heartfelt wishes from friends and family. Perfect for birthdays, weddings, graduations, and more." 
       />
       <div className="min-h-screen bg-white">
-        {/* Header */}
-        <header className="absolute top-0 left-0 right-0 z-50 p-4">
-          <div className="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">
-              Weesha
-            </h1>
-            {isAuthenticated ? (
-              <Link to="/dashboard" className="px-5 py-2 text-purple-600 font-semibold hover:bg-purple-50 rounded-full transition">
-                Dashboard
-              </Link>
-            ) : (
-              <Link to="/auth?mode=login" className="px-5 py-2 text-purple-600 font-semibold hover:bg-purple-50 rounded-full transition">
-                Login
-              </Link>
-            )}
-          </div>
-        </header>
+        <Header />
 
         {/* Hero */}
         <section className="relative pt-32 pb-20 px-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
@@ -148,6 +132,10 @@ export default function Home() {
         <footer className="py-8 px-4 bg-gray-50 border-t">
           <div className="max-w-6xl mx-auto text-center text-gray-500 text-sm">
             <p>© 2026 Weesha. Made with ❤️ for celebrations.</p>
+            <div className="mt-4 space-x-4">
+              <Link to="/privacy" className="hover:text-purple-600 transition">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-purple-600 transition">Terms of Use</Link>
+            </div>
           </div>
         </footer>
       </div>

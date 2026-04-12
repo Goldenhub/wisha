@@ -13,13 +13,14 @@ A beautiful, mobile-first celebration wishes application where users create time
 - **Real-time Updates**: See new wishes appear instantly via Server-Sent Events
 - **Confetti Notifications**: Visual confetti bursts when visitors celebrate
 - **Share Easily**: One-tap sharing with native Web Share API
+- **Account Settings**: Export your data or delete your account
 
 ### For Visitors
 
 - **Add Wishes**: Send heartfelt messages with photos and emojis
-- **Celebrate**: Trigger confetti celebrations
+- **Celebrate**: Trigger confetti celebrations (once per event)
 - **Privacy**: Visitors only see their own wishes
-- **One Celebration Per Creator**: You can only celebrate a creator once (not per event)
+- **Memory Replay**: Revisit expired celebrations as read-only memories
 
 ## Tech Stack
 
@@ -31,6 +32,7 @@ A beautiful, mobile-first celebration wishes application where users create time
 - **Authentication**: Session-based with HTTP-only cookies
 - **File Storage**: Cloudinary for image uploads
 - **Real-time**: Server-Sent Events (SSE)
+- **Scheduling**: node-cron for account cleanup
 
 ### Frontend
 
@@ -60,10 +62,8 @@ Create `backend/.env.local` for local development:
 PORT=3001
 SESSION_SECRET=your-development-secret-key
 FRONTEND_URL=http://localhost:5173
-DB_HOST=localhost
-DATABASE=weesha
-USER=postgres
-PASSWORD=your-password
+PG_CONNECTION_STRING=postgresql://postgres:password@localhost:5432/weesha
+PG_SSL=false
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
@@ -127,24 +127,19 @@ weesha/
 │   │   ├── middleware/
 │   │   │   └── auth.ts     # Session auth middleware
 │   │   ├── db.ts           # Knex database connection
-│   │   └── server.ts       # Express server setup
-│   ├── migrations/          # Database schema migrations
-│   └── tests/              # Jest unit tests
+│   │   └── server.ts       # Express server setup + cron jobs
+│   └── migrations/          # Database schema migrations
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── client.ts   # API client with visitorId tracking
 │   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Route pages
-│   │   │   ├── CelebrationPage.tsx  # Main celebration view
-│   │   │   ├── Dashboard.tsx        # User's celebrations
-│   │   │   └── CreateCelebration.tsx
-│   │   ├── stores/         # Zustand state stores
-│   │   └── types/          # TypeScript definitions
-│   └── e2e/                # Playwright E2E tests
+│   │   ├── pages/        # Route pages
+│   │   ├── stores/       # Zustand state stores
+│   │   └── types/        # TypeScript definitions
 │
-├── AGENTS.md               # AI agent instructions
+├── AGENTS.md              # AI agent instructions
 └── README.md
 ```
 
@@ -152,23 +147,24 @@ weesha/
 
 ### Authentication
 
-| Method | Endpoint             | Description      |
-| ------ | -------------------- | ---------------- |
-| POST   | `/api/auth/register` | Create account   |
-| POST   | `/api/auth/login`    | Login            |
-| POST   | `/api/auth/logout`   | Logout           |
-| GET    | `/api/auth/me`       | Get current user |
+| Method | Endpoint             | Description                    |
+| ------ | -------------------- | ----------------------------- |
+| POST   | `/api/auth/register`  | Create account                |
+| POST   | `/api/auth/login`    | Login (restores deleted accounts) |
+| POST   | `/api/auth/logout`   | Logout                       |
+| GET    | `/api/auth/me`       | Get current user              |
+| DELETE | `/api/auth/delete-account` | Soft delete account (3-day grace) |
 
 ### Celebrations
 
-| Method | Endpoint                                 | Description                        |
-| ------ | ---------------------------------------- | ---------------------------------- |
+| Method | Endpoint                                 | Description                    |
+| ------ | ---------------------------------------- | ------------------------------ |
 | POST   | `/api/celebrations`                      | Create celebration (auth required) |
-| GET    | `/api/celebrations/:slug`                | Get by slug (public)               |
-| GET    | `/api/celebrations/:id/wishes`           | Get wishes                         |
-| GET    | `/api/celebrations/:id/wishes/stream`    | SSE stream for wishes              |
-| POST   | `/api/celebrations/:id/confetti`         | Celebrate (one per creator)        |
-| GET    | `/api/celebrations/user/my-celebrations` | Get user's celebrations            |
+| GET    | `/api/celebrations/:slug`                | Get by slug (public)           |
+| GET    | `/api/celebrations/:id/wishes`           | Get wishes                     |
+| GET    | `/api/celebrations/:id/wishes/stream`    | SSE stream for wishes           |
+| POST   | `/api/celebrations/:id/confetti`          | Celebrate (one per event)       |
+| GET    | `/api/celebrations/user/my-celebrations` | Get user's celebrations         |
 
 ### Wishes
 
@@ -186,13 +182,11 @@ weesha/
 4. Configure environment variables:
    ```
    ENV=production
+   NODE_ENV=production
    PORT=3001
    SESSION_SECRET=<generate-secure-random-string>
    FRONTEND_URL=https://your-frontend.vercel.app
-   DB_HOST=<your-postgres-host>
-   DATABASE=postgres
-   USER=postgres
-   PASSWORD=<your-password>
+   PG_CONNECTION_STRING=postgresql://user:password@host:5432/db?sslmode=require
    CLOUDINARY_CLOUD_NAME=<your-cloud-name>
    CLOUDINARY_API_KEY=<your-api-key>
    CLOUDINARY_API_SECRET=<your-api-secret>
@@ -218,11 +212,11 @@ weesha/
 Visitors are tracked via a unique `visitorId` stored in localStorage. This allows:
 
 - Visitors to see only their own wishes on a celebration page
-- The system to ensure one confetti celebration per visitor per creator
+- The system to ensure one confetti celebration per visitor per event
 
 ### Confetti System
 
-- Visitors can trigger confetti once per celebration creator (not per event)
+- Visitors can trigger confetti once per celebration event
 - The celebration creator sees confetti bursts on the wish belonging to the visitor who celebrated
 - Confetti is tracked in the database and broadcast via SSE to all connected viewers
 
@@ -234,13 +228,26 @@ Server-Sent Events (SSE) provide real-time wish updates:
 - Confetti celebrations are broadcast to all viewers
 - No polling required
 
+### Account Deletion
+
+When a user deletes their account:
+
+1. The account is soft-deleted (marked with `deletedAt` timestamp)
+2. User is logged out immediately
+3. User can log back in within 3 days to restore their account
+4. After 3 days, a cron job permanently deletes the account and all associated data:
+   - Cloudinary images
+   - User sessions
+   - User record (cascades to celebrations, wishes, confetti_activations)
+
+### Celebration Lifecycle
+
+1. **Live Mode**: Before expiration - visitors can add wishes and celebrate
+2. **Memory Mode**: After expiration - read-only replay of all wishes and celebrations
+
 ## Testing
 
 ```bash
-# Backend tests
-cd backend
-npm test
-
 # Frontend E2E tests (requires running backend)
 cd frontend
 npm run test:e2e
@@ -255,8 +262,7 @@ MIT License - feel free to use this project for your own celebrations!
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests
-5. Submit a pull request
+4. Submit a pull request
 
 ---
 

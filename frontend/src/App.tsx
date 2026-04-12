@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard';
 import CreateCelebration from './pages/CreateCelebration';
 import CelebrationPage from './pages/CelebrationPage';
 import MemoryPage from './pages/MemoryPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import Settings from './pages/Settings';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -32,6 +35,9 @@ function App() {
             <Route path="/create" element={<CreateCelebration />} />
             <Route path="/c/:slug" element={<CelebrationPage />} />
             <Route path="/memory/:slug" element={<MemoryPage />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfUse />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
