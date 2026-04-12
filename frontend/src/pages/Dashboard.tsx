@@ -1,7 +1,8 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
+import Header from "../components/Header";
 
 const EVENT_EMOJIS: Record<string, string> = {
   birthday: "🎂",
@@ -14,7 +15,7 @@ const EVENT_EMOJIS: Record<string, string> = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { logout, isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
 
   const { data: celebrations, isLoading } = useQuery({
     queryKey: ["my-celebrations"],
@@ -55,25 +56,18 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-purple-600">Weesha</Link>
-          <div className="flex gap-4 items-center">
-            <button onClick={() => navigate("/create")} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-              Create New
-            </button>
-            <Link to="/settings" className="px-4 py-2 text-gray-600 hover:text-purple-600 transition">
-              Settings
-            </Link>
-            <button onClick={() => logout()} className="px-4 py-2 text-gray-600 hover:text-gray-800 transition">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">My Celebrations</h2>
+      <main className="max-w-6xl mx-auto px-4 pt-24 pb-8">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">My Celebrations</h2>
+          <button 
+            onClick={() => navigate("/create")} 
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+          >
+            Create New
+          </button>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center py-12">
