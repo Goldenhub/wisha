@@ -52,7 +52,8 @@ router.post('/login', async (req: Request, res: Response) => {
 
     (req.session as unknown as Record<string, unknown>).userId = user.id;
     console.log('Login success, session ID:', req.sessionID);
-    console.log('Session after login:', req.session);
+    console.log('Session userId:', (req.session as unknown as Record<string, unknown>).userId);
+    console.log('Session cookie:', req.session.cookie);
 
     res.json({ user: { id: user.id, email: user.email, createdAt: user.createdAt } });
   } catch (error) {
