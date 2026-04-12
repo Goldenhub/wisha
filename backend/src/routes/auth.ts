@@ -49,6 +49,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const user = await db('users').where({ email }).first();
     if (!user) {
+      console.log(`[AUTH] User not found: ${email}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -62,10 +63,14 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
+      console.log(`[AUTH] Invalid password for: ${email}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     (req.session as unknown as Record<string, unknown>).userId = user.id;
+    
+    console.log(`[AUTH] Login success for ${email}, userId: ${user.id}, sessionID: ${req.sessionID}`);
+    console.log(`[AUTH] Cookie settings:`, req.session.cookie);
 
     res.json({ user: { id: user.id, email: user.email, createdAt: user.createdAt }, restored });
   } catch (error) {
@@ -86,7 +91,10 @@ router.post('/logout', (req: Request, res: Response) => {
 
 router.get('/me', (req: Request, res: Response) => {
   const session = req.session as unknown as Record<string, unknown>;
+  console.log(`[AUTH] /me called, sessionID: ${req.sessionID}, session:`, JSON.stringify(session));
+  
   if (!session || !session.userId) {
+    console.log(`[AUTH] /me - No session or userId`);
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
