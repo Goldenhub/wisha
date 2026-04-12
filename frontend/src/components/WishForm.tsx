@@ -141,8 +141,8 @@ export default function WishForm({ celebrationId, onClose, onSuccess }: WishForm
 
           {/* Message preview */}
           {fullMessage && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-4">
-              <p className="text-white text-lg sm:text-xl text-center leading-relaxed">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-4 max-h-48 overflow-y-auto">
+              <p className="text-white text-base sm:text-lg text-center leading-relaxed break-words whitespace-pre-wrap">
                 "{fullMessage}"
               </p>
               {name && (
