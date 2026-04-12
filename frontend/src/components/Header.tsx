@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 
 const LogoIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" className="inline-block mr-2">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" className="flex-shrink-0">
     <defs>
       <linearGradient id="cone" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" style={{stopColor:'#a855f7'}}/>
@@ -57,30 +57,33 @@ export default function Header() {
     };
   }, [isMenuOpen]);
 
+  const closeMenu = () => setIsMenuOpen(false);
+
   return (
-    <header className="absolute top-0 left-0 right-0 z-50 p-3 sm:p-4">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
+    <header className="absolute top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        {/* Logo */}
         <Link 
           to="/" 
-          className="flex items-center text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500"
+          className="flex items-center gap-2 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500"
         >
           <LogoIcon />
-          <span className="hidden xs:inline">Weesha</span>
+          <span>Weesha</span>
         </Link>
         
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-3">
+        {/* Desktop Navigation - Always visible on desktop */}
+        <nav className="hidden md:flex items-center gap-2">
           {isAuthenticated ? (
             <>
               <Link 
                 to="/dashboard" 
-                className="px-4 py-2 text-purple-600 font-semibold hover:bg-purple-50 rounded-full transition text-sm"
+                className="px-4 py-2 text-purple-600 font-medium hover:bg-purple-50 rounded-lg transition text-sm"
               >
                 Dashboard
               </Link>
               <Link 
                 to="/settings" 
-                className="px-4 py-2 text-gray-600 hover:text-purple-600 transition text-sm"
+                className="px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition text-sm"
               >
                 Settings
               </Link>
@@ -88,67 +91,71 @@ export default function Header() {
           ) : (
             <Link 
               to="/auth?mode=login" 
-              className="px-5 py-2 text-purple-600 font-semibold hover:bg-purple-50 rounded-full transition text-sm"
+              className="px-5 py-2 text-purple-600 font-medium hover:bg-purple-50 rounded-lg transition text-sm"
             >
               Login
             </Link>
           )}
         </nav>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button - Always visible on mobile */}
         <button
           ref={buttonRef}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 text-purple-600 relative z-[60]"
+          className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 text-purple-600"
           aria-label="Toggle menu"
         >
-          <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-[9px]' : ''}`} />
+          <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
           <span className={`block w-6 h-0.5 bg-current transition-all duration-200 ${isMenuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-[9px]' : ''}`} />
+          <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsMenuOpen(false)} />
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+            onClick={closeMenu}
+          />
+          
+          {/* Dropdown */}
+          <div 
+            ref={menuRef}
+            className="absolute top-full left-0 right-0 bg-white shadow-xl z-50 md:hidden"
+          >
+            <nav className="flex flex-col p-2">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={closeMenu}
+                    className="px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-lg transition"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/settings"
+                    onClick={closeMenu}
+                    className="px-4 py-3 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                  >
+                    Settings
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  to="/auth?mode=login"
+                  onClick={closeMenu}
+                  className="px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-lg transition"
+                >
+                  Login
+                </Link>
+              )}
+            </nav>
+          </div>
+        </>
       )}
-
-      {/* Mobile Menu Dropdown */}
-      <div 
-        ref={menuRef}
-        className={`absolute top-full left-0 right-0 bg-white shadow-xl z-50 md:hidden transition-all duration-300 ${
-          isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
-        }`}
-      >
-        <nav className="flex flex-col p-3 border-t">
-          {isAuthenticated ? (
-            <>
-              <Link
-                to="/dashboard"
-                onClick={() => setIsMenuOpen(false)}
-                className="px-4 py-3 text-purple-600 font-semibold hover:bg-purple-50 rounded-xl transition text-base"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/settings"
-                onClick={() => setIsMenuOpen(false)}
-                className="px-4 py-3 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition text-base"
-              >
-                Settings
-              </Link>
-            </>
-          ) : (
-            <Link
-              to="/auth?mode=login"
-              onClick={() => setIsMenuOpen(false)}
-              className="px-4 py-3 text-purple-600 font-semibold hover:bg-purple-50 rounded-xl transition text-base"
-            >
-              Login
-            </Link>
-          )}
-        </nav>
-      </div>
     </header>
   );
 }
