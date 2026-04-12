@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import { api, getVisitorId } from "../api/client";
@@ -32,6 +32,7 @@ const EVENT_EMOJIS: Record<string, string> = {
 
 export default function CelebrationPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("details");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -59,6 +60,12 @@ export default function CelebrationPage() {
   const isOwner = celebration?.isOwner ?? false;
   const visitorId = getVisitorId();
   const isExpired = celebration && new Date(celebration.expiresAt) < new Date();
+
+  useEffect(() => {
+    if (isExpired && slug) {
+      navigate(`/memory/${slug}`);
+    }
+  }, [isExpired, slug, navigate]);
 
   useEffect(() => {
     wishesRef.current = wishes;

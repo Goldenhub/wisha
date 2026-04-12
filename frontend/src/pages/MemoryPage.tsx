@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import confetti from 'canvas-confetti';
 import { api } from '../api/client';
@@ -16,7 +16,6 @@ interface Wish {
 
 export default function MemoryPage() {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -42,13 +41,6 @@ export default function MemoryPage() {
   useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
-
-  const isExpired = celebration && new Date(celebration.expiresAt) < new Date();
-  
-  if (!isExpired && celebration) {
-    navigate(`/c/${slug}`);
-    return null;
-  }
 
   const triggerCelebration = useCallback(() => {
     confetti({
@@ -183,12 +175,6 @@ export default function MemoryPage() {
               Memory Replay • {wishes.length} wishes • 🎊 {celebration.confettiCount}
             </p>
           </div>
-          <button
-            onClick={() => navigate(`/c/${slug}`)}
-            className="px-3 py-1 text-sm bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition"
-          >
-            Live →
-          </button>
         </div>
       </div>
 
