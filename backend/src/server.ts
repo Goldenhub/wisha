@@ -41,6 +41,8 @@ const corsOptions: cors.CorsOptions = {
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 console.log("Frontend URL:", frontendUrl);
 console.log("Environment:", env);
+console.log("Session secret set:", !!process.env.SESSION_SECRET);
+console.log("Database:", db.client.config.client);
 
 app.use(cors(corsOptions));
 app.use(express.json());

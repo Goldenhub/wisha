@@ -51,6 +51,8 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     (req.session as unknown as Record<string, unknown>).userId = user.id;
+    console.log('Login success, session ID:', req.sessionID);
+    console.log('Session after login:', req.session);
 
     res.json({ user: { id: user.id, email: user.email, createdAt: user.createdAt } });
   } catch (error) {
@@ -71,6 +73,8 @@ router.post('/logout', (req: Request, res: Response) => {
 
 router.get('/me', (req: Request, res: Response) => {
   const session = req.session as unknown as Record<string, unknown>;
+  console.log('/me called, sessionID:', req.sessionID);
+  console.log('Session data:', session);
   if (!session || !session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
