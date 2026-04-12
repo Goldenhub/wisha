@@ -15,8 +15,8 @@ const FEATURES = [
   },
   {
     emoji: "⏰",
-    title: "Time-Bound",
-    description: "Set an expiration date for that perfect moment, like a real celebration",
+    title: "3 Days of Magic",
+    description: "Your celebration lives for 3 days, then becomes a cherished memory",
   },
   {
     emoji: "📱",

@@ -4,7 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import confetti from 'canvas-confetti';
 import { api } from '../api/client';
 
-const WISH_DURATION = 5000;
+interface Wish {
+  id: number;
+  celebrationId: number;
+  name: string | null;
+  message: string;
+  imageUrl: string | null;
+  visitorId: string | null;
+  createdAt: string;
+}
 
 export default function MemoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +21,8 @@ export default function MemoryPage() {
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wishesRef = useRef<Wish[]>([]);
+  const currentIndexRef = useRef(0);
 
   const { data: celebration, isLoading: loadingCelebration } = useQuery({
     queryKey: ['celebration', slug],
@@ -24,6 +34,14 @@ export default function MemoryPage() {
     queryFn: () => api.celebrations.getWishes(celebration!.id),
     enabled: !!celebration?.id,
   });
+
+  useEffect(() => {
+    wishesRef.current = wishes;
+  }, [wishes]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   const isExpired = celebration && new Date(celebration.expiresAt) < new Date();
   
@@ -47,39 +65,58 @@ export default function MemoryPage() {
   }, [wishes.length, triggerCelebration]);
 
   const goToNext = useCallback(() => {
-    if (currentIndex < wishes.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      setProgress(0);
-    }
-  }, [currentIndex, wishes.length]);
+    const len = wishesRef.current.length;
+    if (len === 0) return;
+    const nextIndex = (currentIndexRef.current + 1) % len;
+    currentIndexRef.current = nextIndex;
+    setCurrentIndex(nextIndex);
+    setProgress(0);
+  }, []);
 
   const goToPrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-      setProgress(0);
-    }
-  }, [currentIndex]);
+    const len = wishesRef.current.length;
+    if (len === 0) return;
+    const prevIndex = (currentIndexRef.current - 1 + len) % len;
+    currentIndexRef.current = prevIndex;
+    setCurrentIndex(prevIndex);
+    setProgress(0);
+  }, []);
 
   useEffect(() => {
-    if (isPaused || wishes.length === 0) {
-      if (progressRef.current) clearInterval(progressRef.current);
+    if (progressRef.current) {
+      clearInterval(progressRef.current);
+      progressRef.current = null;
+    }
+
+    if (isPaused || wishesRef.current.length === 0) {
       return;
     }
 
+    let progress = 0;
+
     progressRef.current = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          goToNext();
-          return 0;
+      progress += 2;
+
+      if (progress >= 100) {
+        progress = 0;
+        const len = wishesRef.current.length;
+        if (len > 0) {
+          const nextIndex = (currentIndexRef.current + 1) % len;
+          currentIndexRef.current = nextIndex;
+          setCurrentIndex(nextIndex);
         }
-        return prev + (100 / (WISH_DURATION / 50));
-      });
+      }
+
+      setProgress(progress);
     }, 50);
 
     return () => {
-      if (progressRef.current) clearInterval(progressRef.current);
+      if (progressRef.current) {
+        clearInterval(progressRef.current);
+        progressRef.current = null;
+      }
     };
-  }, [isPaused, wishes.length, goToNext]);
+  }, [isPaused]);
 
   const handleTap = (e: React.MouseEvent) => {
     const screenWidth = window.innerWidth;
