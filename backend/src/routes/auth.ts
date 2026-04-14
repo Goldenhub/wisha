@@ -19,6 +19,7 @@ router.post('/register', async (req: Request, res: Response) => {
         await db('users').where({ id: existingUser.id }).update({ deletedAt: null, password: await bcrypt.hash(password, 10) });
         const user = await db('users').where({ id: existingUser.id }).first();
         (req.session as unknown as Record<string, unknown>).userId = user.id;
+        res.setHeader('x-session-token', req.sessionID);
         return res.status(201).json({ user: { id: user.id, email: user.email, createdAt: user.createdAt }, restored: true });
       }
       return res.status(400).json({ error: 'Email already exists' });
@@ -32,6 +33,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     (req.session as unknown as Record<string, unknown>).userId = user.id;
 
+    res.setHeader('x-session-token', req.sessionID);
     res.status(201).json({ user });
   } catch (error) {
     console.error('Register error:', error);
@@ -72,6 +74,7 @@ router.post('/login', async (req: Request, res: Response) => {
     console.log(`[AUTH] Login success for ${email}, userId: ${user.id}, sessionID: ${req.sessionID}`);
     console.log(`[AUTH] Cookie settings:`, req.session.cookie);
 
+    res.setHeader('x-session-token', req.sessionID);
     res.json({ user: { id: user.id, email: user.email, createdAt: user.createdAt }, restored });
   } catch (error) {
     console.error('Login error:', error);
@@ -89,12 +92,23 @@ router.post('/logout', (req: Request, res: Response) => {
   });
 });
 
-router.get('/me', (req: Request, res: Response) => {
-  const session = req.session as unknown as Record<string, unknown>;
-  console.log(`[AUTH] /me called, sessionID: ${req.sessionID}, session:`, JSON.stringify(session));
+router.get('/me', async (req: Request, res: Response) => {
+  let session = req.session as unknown as Record<string, unknown>;
   
   if (!session || !session.userId) {
-    console.log(`[AUTH] /me - No session or userId`);
+    const sessionToken = req.headers['x-session-token'] as string;
+    if (sessionToken) {
+      const storedSession = await db('sessions').where('sid', sessionToken).first();
+      if (storedSession) {
+        const sess = typeof storedSession.sess === 'string' ? JSON.parse(storedSession.sess) : storedSession.sess;
+        if (sess?.userId) {
+          session = sess;
+        }
+      }
+    }
+  }
+  
+  if (!session || !session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 

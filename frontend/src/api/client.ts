@@ -9,12 +9,35 @@ const getVisitorId = (): string => {
   return visitorId;
 };
 
+const SESSION_TOKEN_KEY = 'sessionToken';
+
 const fetchWithCredentials = (url: string, options: RequestInit = {}) => {
+  const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
+  
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
+  };
+  
+  if (sessionToken) {
+    headers['x-session-token'] = sessionToken;
+  }
+  
   return fetch(url, {
     ...options,
+    headers,
     credentials: 'include',
   });
 };
+
+export const setSessionToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+  }
+};
+
+export const getSessionToken = () => localStorage.getItem(SESSION_TOKEN_KEY);
 
 export { getVisitorId };
 
@@ -27,6 +50,8 @@ export const api = {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) throw await res.json();
+      const token = res.headers.get('x-session-token');
+      if (token) setSessionToken(token);
       return res.json();
     },
     
@@ -37,10 +62,13 @@ export const api = {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) throw await res.json();
+      const token = res.headers.get('x-session-token');
+      if (token) setSessionToken(token);
       return res.json();
     },
     
     logout: async () => {
+      setSessionToken(null);
       const res = await fetchWithCredentials(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
       });

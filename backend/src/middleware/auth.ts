@@ -1,20 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
+import db from '../db';
 
 export interface AuthRequest extends Request {
   userId?: number;
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
-  console.log(`[AUTH MW] sessionID: ${req.sessionID}, cookie: ${req.headers.cookie?.substring(0, 50)}`);
-  const session = req.session as unknown as Record<string, unknown>;
-  console.log(`[AUTH MW] session contents:`, JSON.stringify(session));
+export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  let session = req.session as unknown as Record<string, unknown>;
   
   if (!session || !session.userId) {
-    console.log(`[AUTH MW] No session or userId found`);
+    const sessionToken = req.headers['x-session-token'] as string;
+    if (sessionToken) {
+      const storedSession = await db('sessions').where('sid', sessionToken).first();
+      if (storedSession) {
+        const sess = typeof storedSession.sess === 'string' ? JSON.parse(storedSession.sess) : storedSession.sess;
+        if (sess?.userId) {
+          session = sess;
+          (req.session as unknown as Record<string, unknown>).userId = sess.userId;
+        }
+      }
+    }
+  }
+  
+  if (!session || !session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
   req.userId = session.userId as number;
-  console.log(`[AUTH MW] Authenticated userId: ${req.userId}`);
   next();
 };
