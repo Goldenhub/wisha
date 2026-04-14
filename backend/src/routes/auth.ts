@@ -102,7 +102,11 @@ router.post('/login', async (req: Request, res: Response) => {
     });
 
     res.setHeader('x-session-token', req.sessionID);
-    res.json({ user: { id: user.id, email: user.email, createdAt: user.createdAt }, restored });
+    res.json({ 
+      user: { id: user.id, email: user.email, createdAt: user.createdAt }, 
+      restored,
+      sessionToken: req.sessionID 
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -49,10 +49,10 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) throw await res.json();
-      const token = res.headers.get('x-session-token');
-      if (token) setSessionToken(token);
-      return res.json();
+      const data = await res.json();
+      if (!res.ok) throw data;
+      if (data.sessionToken) setSessionToken(data.sessionToken);
+      return data;
     },
     
     login: async (email: string, password: string) => {
@@ -61,10 +61,10 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) throw await res.json();
-      const token = res.headers.get('x-session-token');
-      if (token) setSessionToken(token);
-      return res.json();
+      const data = await res.json();
+      if (!res.ok) throw data;
+      if (data.sessionToken) setSessionToken(data.sessionToken);
+      return data;
     },
     
     logout: async () => {
