@@ -19,6 +19,14 @@ router.post('/register', async (req: Request, res: Response) => {
         await db('users').where({ id: existingUser.id }).update({ deletedAt: null, password: await bcrypt.hash(password, 10) });
         const user = await db('users').where({ id: existingUser.id }).first();
         (req.session as unknown as Record<string, unknown>).userId = user.id;
+        
+        await new Promise<void>((resolve) => {
+          req.session.save((err) => {
+            if (err) console.error(`[AUTH] Session save error:`, err);
+            resolve();
+          });
+        });
+        
         res.setHeader('x-session-token', req.sessionID);
         return res.status(201).json({ user: { id: user.id, email: user.email, createdAt: user.createdAt }, restored: true });
       }
@@ -32,6 +40,13 @@ router.post('/register', async (req: Request, res: Response) => {
     }).returning(['id', 'email', 'createdAt']);
 
     (req.session as unknown as Record<string, unknown>).userId = user.id;
+
+    await new Promise<void>((resolve) => {
+      req.session.save((err) => {
+        if (err) console.error(`[AUTH] Session save error:`, err);
+        resolve();
+      });
+    });
 
     res.setHeader('x-session-token', req.sessionID);
     res.status(201).json({ user });
@@ -74,6 +89,18 @@ router.post('/login', async (req: Request, res: Response) => {
     console.log(`[AUTH] Login success for ${email}, userId: ${user.id}, sessionID: ${req.sessionID}`);
     console.log(`[AUTH] Cookie settings:`, req.session.cookie);
 
+    await new Promise<void>((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) {
+          console.error(`[AUTH] Session save error:`, err);
+          reject(err);
+        } else {
+          console.log(`[AUTH] Session saved to database`);
+          resolve();
+        }
+      });
+    });
+
     res.setHeader('x-session-token', req.sessionID);
     res.json({ user: { id: user.id, email: user.email, createdAt: user.createdAt }, restored });
   } catch (error) {
@@ -95,12 +122,18 @@ router.post('/logout', (req: Request, res: Response) => {
 router.get('/me', async (req: Request, res: Response) => {
   let session = req.session as unknown as Record<string, unknown>;
   
+  console.log(`[AUTH /me] Cookie header:`, req.headers.cookie?.substring(0, 50));
+  console.log(`[AUTH /me] x-session-token header:`, req.headers['x-session-token']);
+  
   if (!session || !session.userId) {
     const sessionToken = req.headers['x-session-token'] as string;
+    console.log(`[AUTH /me] Trying session token lookup...`);
     if (sessionToken) {
       const storedSession = await db('sessions').where('sid', sessionToken).first();
+      console.log(`[AUTH /me] Stored session found:`, !!storedSession);
       if (storedSession) {
         const sess = typeof storedSession.sess === 'string' ? JSON.parse(storedSession.sess) : storedSession.sess;
+        console.log(`[AUTH /me] Session data:`, JSON.stringify(sess));
         if (sess?.userId) {
           session = sess;
         }
@@ -109,6 +142,7 @@ router.get('/me', async (req: Request, res: Response) => {
   }
   
   if (!session || !session.userId) {
+    console.log(`[AUTH /me] No valid session found`);
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
